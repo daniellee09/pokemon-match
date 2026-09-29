@@ -352,6 +352,7 @@ button:focus-visible { outline: 3px solid var(--lens); outline-offset: 3px; }
 }
 .invite-row input:focus { outline: none; border-color: var(--lens); }
 .btn.small { background: var(--ink); color: #fff; padding: 10px 14px; border-radius: 10px; font-weight: 700; font-size: 14px; white-space: nowrap; }
+.btn.small.light { background: #fff; color: var(--ink); border: 2px solid var(--line); padding: 8px 12px; }
 .invite-box .hint { margin: 8px 0 0; font-size: 12px; color: var(--muted); line-height: 1.5; word-break: keep-all; }
 
 /* ───────── 푸터 ───────── */

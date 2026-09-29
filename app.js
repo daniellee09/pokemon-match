@@ -375,17 +375,34 @@ function selectTab(panelId) {
   document.querySelectorAll(".panel").forEach((p) => p.classList.toggle("active", p.id === panelId));
 }
 
-async function share() {
+const SITE_URL = `${location.origin}${location.pathname}`; // 초대 코드(?from=...)가 없는 기본 주소
+
+// 문구와 링크를 하나의 텍스트로 합쳐서 보낸다.
+// share()에 url을 따로 넘기면 공유 시트의 '복사'나 카카오톡 등에서 문구가 빠지고 링크만 전달되기 때문.
+async function shareMessage(text, url, copiedMsg) {
+  const message = `${text}\n${url}`;
   try {
     if (navigator.share) {
-      await navigator.share({ title: "나와 닮은 포켓몬", text: lastShare, url: location.href });
+      await navigator.share({ text: message });
       return;
     }
-    await navigator.clipboard.writeText(`${lastShare}\n${location.href}`);
-    toast("결과를 클립보드에 복사했어요!");
-  } catch {
-    // 사용자가 공유를 취소한 경우 등은 조용히 무시
+  } catch (err) {
+    if (err.name === "AbortError") return; // 사용자가 공유 시트를 닫음
   }
+  await copyMessage(message, copiedMsg);
+}
+
+async function copyMessage(message, copiedMsg) {
+  try {
+    await navigator.clipboard.writeText(message);
+    toast(copiedMsg);
+  } catch {
+    toast("복사하지 못했어요. 다시 시도해 주세요.");
+  }
+}
+
+function share() {
+  return shareMessage(lastShare, SITE_URL, "결과를 클립보드에 복사했어요!");
 }
 
 function toast(msg) {
@@ -399,28 +416,25 @@ function inviteUrl() {
   const params = new URLSearchParams({ from: answers.join("") });
   const name = $("nickname").value.trim().slice(0, 10);
   if (name) params.set("name", name);
-  return `${location.origin}${location.pathname}?${params}`;
+  return `${SITE_URL}?${params}`;
 }
 
-async function sendInvite() {
-  const url = inviteUrl();
+function sendInvite() {
+  return shareMessage(inviteText(), inviteUrl(), "초대 문구와 링크를 복사했어요! 친구에게 보내보세요.");
+}
+
+function copyInvite() {
+  return copyMessage(`${inviteText()}\n${inviteUrl()}`, "초대 문구와 링크를 복사했어요! 친구에게 보내보세요.");
+}
+
+function inviteText() {
   const name = $("nickname").value.trim().slice(0, 10);
   const who = name ? `${name}님` : "이 트레이너";
-  const text = [
+  return [
     `📟 도감 No.${String(lastBest.id).padStart(3, "0")} ${lastBest.name} 등록 완료!`,
     `${josa(who, "과", "와")} 짝이 될 포켓몬을 찾고 있어요.`,
     "당신의 포켓몬을 스캔하고 궁합을 확인하세요.",
   ].join("\n");
-  try {
-    if (navigator.share) {
-      await navigator.share({ title: "포켓몬 궁합 보기", text, url });
-      return;
-    }
-    await navigator.clipboard.writeText(`${text}\n${url}`);
-    toast("초대 링크를 복사했어요! 친구에게 보내보세요.");
-  } catch {
-    // 공유 취소 등은 무시
-  }
 }
 
 function restart() {
@@ -453,6 +467,7 @@ $("inviteToggle").onclick = () => {
   if (!$("inviteBox").hidden) $("nickname").focus();
 };
 $("inviteSend").onclick = sendInvite;
+$("inviteCopy").onclick = copyInvite;
 document.querySelectorAll(".tab").forEach((t) => (t.onclick = () => selectTab(t.dataset.panel)));
 $("backBtn").onclick = () => {
   if (current > 0) {
