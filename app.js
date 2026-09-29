@@ -119,11 +119,21 @@ function userVector(ans = answers) {
 
 const MAX_DIST = Math.sqrt(AXES.length * (2 * CLIP) ** 2); // 모든 축이 정반대 끝일 때
 
+// 성향 벡터로 만든 숫자. 같은 답변이면 항상 같은 값이 나온다.
+function vectorHash(user) {
+  return user.reduce((h, x) => Math.imul(h ^ Math.round((x + CLIP) * 1000), 2654435761) >>> 0, 7);
+}
+
+// 가까운 순으로 정렬. 반올림한 싱크로율이 아니라 실제 거리로 비교한다.
+// 거리가 정확히 같으면(예: 종족값까지 똑같은 바오프·야나프·앗차프) 답변에서 나온 숫자로 순서를 정해서,
+// 도감 번호가 앞선 포켓몬만 항상 이기지 않고 답변에 따라 셋 다 나올 수 있게 한다.
 function rank(user) {
+  const h = vectorHash(user);
+  const tieKey = (id) => Math.imul(id ^ h, 2246822519) >>> 0;
   return POKEMON.map((p) => {
     const d = Math.sqrt(p.v.reduce((sum, x, i) => sum + (x - user[i]) ** 2, 0));
-    return { ...p, match: Math.round((1 - d / MAX_DIST) * 100) };
-  }).sort((a, b) => b.match - a.match);
+    return { ...p, dist: d, match: Math.round((1 - d / MAX_DIST) * 100) };
+  }).sort((a, b) => (Math.abs(a.dist - b.dist) > 1e-9 ? a.dist - b.dist : tieKey(a.id) - tieKey(b.id)));
 }
 
 const TRAIT = {
