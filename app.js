@@ -14,8 +14,12 @@ const TYPE_COLOR = {
   강철: ["#60a1b8"], 페어리: ["#ef70ef"],
 };
 
-let current = 0;
-let answers = []; // 각 질문에서 고른 선택지 index
+// 질문·선택지는 매번 섞어서 보여주지만, answers는 항상 원래 순서(QUESTIONS 기준 번호)로 저장한다.
+// 그래야 결과 계산과 초대 링크(?from=...)가 섞는 순서와 상관없이 똑같이 동작한다.
+let current = 0;       // 지금 몇 번째로 보여주는 질문인지 (0 ~ 9)
+let order = [];        // 보여줄 질문 순서: order[current] = QUESTIONS 번호
+let optionOrder = [];  // optionOrder[질문 번호] = 보여줄 선택지 순서
+let answers = [];      // answers[질문 번호] = 고른 선택지의 원래 번호
 let lastShare = "";
 let lastBest = null; // 초대 문구에 넣을 내 포켓몬
 
@@ -44,8 +48,18 @@ function lcd(text) {
   $("lcd").textContent = text;
 }
 
+function shuffled(n) {
+  const arr = [...Array(n).keys()];
+  for (let i = n - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
 function renderQuestion() {
-  const item = QUESTIONS[current];
+  const qi = order[current];
+  const item = QUESTIONS[qi];
   const pct = (current / QUESTIONS.length) * 100;
   $("qCount").textContent = `Q${current + 1} / ${QUESTIONS.length}`;
   $("trackFill").style.width = `${pct}%`;
@@ -58,20 +72,22 @@ function renderQuestion() {
   const box = $("options");
   box.classList.remove("locked");
   box.innerHTML = "";
-  item.options.forEach((opt, i) => {
+  optionOrder[qi].forEach((oi) => {
     const btn = document.createElement("button");
     btn.className = "option";
-    btn.textContent = opt.text;
-    btn.onclick = () => choose(i, btn);
+    if (answers[qi] === oi) btn.classList.add("picked"); // 이전 질문으로 돌아왔을 때 고른 답 표시
+    btn.textContent = item.options[oi].text;
+    btn.onclick = () => choose(oi, btn);
     box.appendChild(btn);
   });
 }
 
 // 선택 표시를 잠깐 보여준 뒤 다음 질문으로
-async function choose(i, btn) {
+async function choose(oi, btn) {
   $("options").classList.add("locked");
+  $("options").querySelectorAll(".picked").forEach((b) => b.classList.remove("picked"));
   btn.classList.add("picked");
-  answers[current] = i;
+  answers[order[current]] = oi;
   await wait(REDUCED_MOTION ? 0 : 220);
   current++;
   if (current < QUESTIONS.length) {
@@ -410,6 +426,8 @@ async function sendInvite() {
 function restart() {
   current = 0;
   answers = [];
+  order = shuffled(QUESTIONS.length);
+  optionOrder = QUESTIONS.map((q) => shuffled(q.options.length));
   renderQuestion();
   show("quiz");
 }
