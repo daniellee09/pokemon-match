@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>나와 닮은 포켓몬 찾기</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/galmuri@latest/dist/galmuri.css" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="dex">
+    <!-- 도감 상단: 렌즈와 LED -->
+    <header class="dex-top" aria-hidden="true">
+      <div class="lens"></div>
+      <div class="leds"><i class="led red"></i><i class="led yellow"></i><i class="led green"></i></div>
+    </header>
+
+    <!-- 도감 화면 -->
+    <div class="bezel">
+      <div class="bezel-dots" aria-hidden="true"><i></i><i></i></div>
+      <div class="screen-area">
+
+        <!-- 시작 화면 -->
+        <section id="start" class="screen active">
+          <p id="inviteBanner" class="invite-banner" hidden></p>
+          <div class="silhouette-wrap">
+            <img id="silhouette" class="silhouette" alt="" />
+            <span class="qmark">?</span>
+          </div>
+          <p class="pixel eyebrow">1세대 포켓몬 151마리</p>
+          <h1>그중 당신은<br />누구일까요?</h1>
+          <p class="sub">질문 10개에 답하면 성격이 가장 닮은<br />포켓몬을 도감에서 찾아드려요.</p>
+          <button id="startBtn" class="btn primary">스캔 시작</button>
+        </section>
+
+        <!-- 질문 화면 -->
+        <section id="quiz" class="screen">
+          <div class="track" aria-hidden="true">
+            <div id="trackFill" class="track-fill"></div>
+            <div id="trackBall" class="track-ball"></div>
+          </div>
+          <p id="qCount" class="pixel eyebrow"></p>
+          <h2 id="qText" class="q-text"></h2>
+          <div id="options" class="options"></div>
+          <button id="backBtn" class="btn ghost">← 이전 질문</button>
+        </section>
+
+        <!-- 결과 공개 연출 -->
+        <section id="reveal" class="screen reveal">
+          <div class="shake-ball"></div>
+          <p class="pixel eyebrow">분석 중...</p>
+          <div class="flash"></div>
+        </section>
+
+        <!-- 결과 화면 -->
+        <section id="result" class="screen">
+          <div class="entry-head">
+            <p id="rNo" class="pixel dex-no"></p>
+            <p id="rGenus" class="genus"></p>
+          </div>
+          <h2 id="rName" class="poke-name"></h2>
+
+          <div class="stage">
+            <img id="rImg" class="poke-img" alt="" />
+            <div class="gauge" id="rGauge">
+              <div class="gauge-inner">
+                <strong id="rMatch"></strong>
+                <span>싱크로율</span>
+              </div>
+            </div>
+          </div>
+
+          <div id="rTypes" class="types"></div>
+          <p id="rDesc" class="summary"></p>
+          <p id="rFlavor" class="flavor"></p>
+
+          <article id="rFriend" class="mate friend" hidden></article>
+
+          <div class="tabs" role="tablist">
+            <button class="tab active" role="tab" aria-selected="true" data-panel="panelWhy">왜 이 포켓몬?</button>
+            <button class="tab" role="tab" aria-selected="false" data-panel="panelMates">궁합</button>
+            <button class="tab" role="tab" aria-selected="false" data-panel="panelOthers">닮은 포켓몬</button>
+          </div>
+
+          <div id="panelWhy" class="panel active" role="tabpanel">
+            <div class="legend"><span class="me">● 나</span><span class="pk">● 포켓몬</span></div>
+            <div id="rAxes" class="axes"></div>
+          </div>
+          <div id="panelMates" class="panel" role="tabpanel">
+            <div id="rPartner"></div>
+            <div id="rNemesis"></div>
+          </div>
+          <div id="panelOthers" class="panel" role="tabpanel">
+            <div id="rOthers" class="others"></div>
+          </div>
+
+          <div class="actions">
+            <button id="shareBtn" class="btn primary">결과 공유하기</button>
+            <button id="inviteToggle" class="btn secondary">친구와 궁합 보기</button>
+            <div id="inviteBox" class="invite-box" hidden>
+              <label for="nickname">친구에게 보여줄 내 이름 (선택)</label>
+              <div class="invite-row">
+                <input id="nickname" maxlength="10" placeholder="예: 지우" autocomplete="off" />
+                <button id="inviteSend" class="btn small">링크 보내기</button>
+              </div>
+              <p class="hint">친구가 이 링크로 퀴즈를 풀면 두 사람의 궁합이 나와요. 링크에는 내 답변 번호와 이름만 담겨요.</p>
+            </div>
+            <button id="retryBtn" class="btn ghost">다시 스캔하기</button>
+          </div>
+          <p id="toast" class="toast" role="status"></p>
+        </section>
+      </div>
+    </div>
+
+    <!-- 도감 하단: 상태 표시창 -->
+    <div class="dex-bottom">
+      <div class="lcd pixel" id="lcd">READY</div>
+      <div class="dpad" aria-hidden="true"><i></i><i></i></div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <details>
+      <summary>어떻게 계산했나요?</summary>
+      <ul>
+        <li><b>활발 ↔ 차분</b>: 스피드가 빠를수록 활발</li>
+        <li><b>외향 ↔ 내향</b>: 사람을 잘 따르고(친밀도), 흔히 보이고(포획률), 도시·초원에 살수록 외향</li>
+        <li><b>이성 ↔ 직감</b>: 힘(공격)보다 특수 능력(특수공격)으로 싸울수록 이성</li>
+        <li><b>모험 ↔ 신중</b>: 방어보다 공격 능력이 높을수록 모험</li>
+        <li><b>장난 ↔ 진지</b>: 타입(고스트·페어리는 장난, 격투·강철은 진지)과 도감 설명 속 표현</li>
+      </ul>
+      <p><b>찰떡 파트너</b>: 성격 궁합 60% + 타입 보완 40%. 성격은 가치관(이성↔직감, 장난↔진지)이 비슷하고 에너지(활발↔차분, 외향↔내향, 모험↔신중)는 서로 반대일수록, 타입은 서로의 약점 공격을 잘 버텨줄수록 높아요.</p>
+      <p><b>친구 궁합</b>: 찰떡 파트너와 같은 공식이에요. 두 사람의 답변 성향(성격 60%)과 각자의 포켓몬 타입(40%)으로 계산해요.</p>
+      <p><b>천적</b>: 내 포켓몬을 효과가 굉장한 공격으로 치면서 내 공격은 잘 버티는 포켓몬이에요. 조건이 같으면 성격이 나와 가장 반대인 포켓몬을 골랐어요.</p>
+      <p>각 값은 1세대 151마리 안에서의 상대적인 위치예요. 퀴즈 답변도 같은 기준으로 바꾼 뒤 가장 가까운 포켓몬을 찾았어요.</p>
+    </details>
+    <p class="source">데이터 출처: <a href="https://pokeapi.co" target="_blank" rel="noopener">PokeAPI</a> · 포켓몬 이미지 및 명칭 © Nintendo / Creatures / GAME FREAK</p>
+  </footer>
+
+  <script src="data.js"></script>
+  <script src="pokemon-data.js"></script>
+  <script src="compat.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
