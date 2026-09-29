@@ -1,0 +1,61 @@
+<!doctype html>
+<!-- 링크 미리보기 카드 원본. 렌더링: scripts/render_og.sh → og-image.png (1200×630) -->
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/galmuri@latest/dist/galmuri.css" />
+<style>
+  * { box-sizing: border-box; margin: 0; }
+  html, body { width: 1200px; height: 630px; overflow: hidden; }
+  body {
+    font-family: "Pretendard", sans-serif;
+    background: linear-gradient(160deg, #f2425d 0%, #dc0a2d 22%, #dc0a2d 78%, #a3071f 100%);
+    padding: 40px;
+    display: flex;
+    gap: 36px;
+  }
+  .side { width: 64px; display: flex; flex-direction: column; align-items: center; gap: 18px; }
+  .lens {
+    width: 64px; height: 64px; border-radius: 50%; border: 6px solid #fff;
+    background: radial-gradient(circle at 32% 30%, #bfe9ff 0 12%, #30a7d7 30%, #1d6f99 80%);
+    box-shadow: 0 0 0 2px rgba(0,0,0,.25);
+  }
+  .led { width: 16px; height: 16px; border-radius: 50%; box-shadow: 0 0 0 2px rgba(0,0,0,.25); }
+  .screen {
+    flex: 1; background: #fbfbf8; border-radius: 18px 18px 18px 60px;
+    border: 14px solid #dedede;
+    display: flex; align-items: center; padding: 0 48px; gap: 24px;
+  }
+  .copy { flex: 1; }
+  .eyebrow { font-family: "Galmuri11", monospace; color: #dc0a2d; font-size: 26px; }
+  h1 { font-size: 66px; font-weight: 800; letter-spacing: -0.03em; line-height: 1.15; margin: 14px 0 20px; color: #232323; }
+  .sub { font-size: 28px; color: #666; line-height: 1.45; }
+  .mons { width: 400px; height: 440px; position: relative; }
+  .mons img { position: absolute; object-fit: contain; }
+  .m1 { width: 250px; left: 10px; top: 10px; }
+  .m2 { width: 230px; right: 0; bottom: 0; }
+  .m3 { width: 190px; left: 0; bottom: 10px; filter: brightness(0); opacity: .85; }
+</style>
+</head>
+<body>
+  <div class="side">
+    <div class="lens"></div>
+    <i class="led" style="background:#ff4b4b"></i>
+    <i class="led" style="background:#ffd23f"></i>
+    <i class="led" style="background:#4cd964"></i>
+  </div>
+  <div class="screen">
+    <div class="copy">
+      <p class="eyebrow">1~5세대 포켓몬 649마리</p>
+      <h1>나와 닮은<br />포켓몬 찾기</h1>
+      <p class="sub">질문 10개로 알아보는<br />나의 포켓몬과 친구 궁합</p>
+    </div>
+    <div class="mons">
+      <img class="m1" src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/25.png" />
+      <img class="m2" src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/393.png" />
+      <img class="m3" src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/133.png" />
+    </div>
+  </div>
+</body>
+</html>

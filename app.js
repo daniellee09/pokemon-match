@@ -17,6 +17,7 @@ const TYPE_COLOR = {
 let current = 0;
 let answers = []; // 각 질문에서 고른 선택지 index
 let lastShare = "";
+let lastBest = null; // 초대 문구에 넣을 내 포켓몬
 
 // 친구 초대 링크: ?from=0123012301&name=닉네임 (from = 초대한 사람의 답변 번호 10자리)
 const invite = parseInvite();
@@ -257,6 +258,7 @@ function renderResult(user, best, rest) {
     : "";
 
   const friendLine = renderFriend(user, best);
+  lastBest = best;
 
   selectTab("panelWhy");
   lastShare = `나와 닮은 포켓몬은 ${no} ${best.name}! (싱크로율 ${best.match}%)\n${summary}\n찰떡 파트너: ${partner.name} (궁합 ${partner.compat}%)${friendLine}`;
@@ -386,7 +388,13 @@ function inviteUrl() {
 
 async function sendInvite() {
   const url = inviteUrl();
-  const text = "나랑 포켓몬 궁합 볼래? 질문 10개만 답하면 돼!";
+  const name = $("nickname").value.trim().slice(0, 10);
+  const who = name ? `${name}님` : "이 트레이너";
+  const text = [
+    `📟 도감 No.${String(lastBest.id).padStart(3, "0")} ${lastBest.name} 등록 완료!`,
+    `${josa(who, "과", "와")} 짝이 될 포켓몬을 찾고 있어요.`,
+    "당신의 포켓몬을 스캔하고 궁합을 확인하세요.",
+  ].join("\n");
   try {
     if (navigator.share) {
       await navigator.share({ title: "포켓몬 궁합 보기", text, url });
