@@ -81,7 +81,7 @@ async function choose(i, btn) {
   }
 }
 
-// 답변 합계를 축마다 표준화(z-score)해서 포켓몬 프로필(151마리 기준 z-score)과 같은 척도로 맞춤.
+// 답변 합계를 축마다 표준화(z-score)해서 포켓몬 프로필(전체 기준 z-score)과 같은 척도로 맞춤.
 // 단순 합계를 쓰면 답이 서로 상쇄되어 대부분 중앙으로 몰리기 때문.
 const CLIP = 2.5;
 const clip = (x) => Math.max(-CLIP, Math.min(CLIP, x));
@@ -148,7 +148,7 @@ function conclusion(key, v) {
   return Math.abs(v) >= 1.2 ? `매우 ${adj} 편` : `${adj} 편`;
 }
 
-// 151마리 중 위치: "상위 12%" / "하위 8%"
+// 전체 포켓몬 중 위치: "상위 12%" / "하위 8%"
 function rankText(value, all) {
   const below = all.filter((x) => x < value).length / all.length;
   return below >= 0.5
@@ -172,7 +172,7 @@ function reason(p, key) {
   const s = p.stats, b = p.basis;
   switch (key) {
     case "E":
-      return `1세대 중 스피드 ${rankText(s.spe, ALL_SPEED)}`;
+      return `1~5세대 중 스피드 ${rankText(s.spe, ALL_SPEED)}`;
     case "S": {
       if (p.legendary) return "홀로 지내는 전설·환상의 포켓몬이에요";
       const c = [];
@@ -214,7 +214,7 @@ function renderResult(user, best, rest) {
 
   const no = `No.${String(best.id).padStart(3, "0")}`;
   $("rNo").textContent = no;
-  $("rGenus").textContent = best.genus;
+  $("rGenus").textContent = `${best.gen}세대 · ${best.genus}`;
   $("rName").textContent = best.name;
   $("rImg").src = IMG_URL(best.id);
   $("rImg").alt = best.name;

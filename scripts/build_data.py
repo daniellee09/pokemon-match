@@ -1,9 +1,10 @@
-"""PokeAPI 데이터로 1세대 포켓몬 151마리의 성향 프로필을 만든다.
+"""PokeAPI 데이터로 1~5세대 포켓몬 649마리의 성향 프로필을 만든다.
 
 실행: python3 scripts/build_data.py
 결과: pokemon-data.js (웹페이지에서 그대로 불러 씀)
 
-각 축은 아래 공식으로 원점수(raw)를 계산한 뒤 151마리 기준으로 표준화(z-score)한다.
+각 축은 아래 공식으로 원점수(raw)를 계산한 뒤 전체 기준으로 표준화(z-score)한다.
+서식지 데이터는 1~3세대에만 있어서, 4~5세대는 서식지 보정을 0(중립)으로 둔다.
   E 활발↔차분 = 스피드
   S 외향↔내향 = 친밀도 + 포획률 + 서식지 보정 (전설/환상은 감점)
   T 이성↔직감 = 특수공격 - 공격 (머리로 싸우나, 몸으로 싸우나)
@@ -23,6 +24,8 @@ CACHE = ROOT / "scripts" / "cache"
 OUT = ROOT / "pokemon-data.js"
 API = "https://pokeapi.co/api/v2"
 CLIP = 2.5
+LAST_ID = 649  # 5세대 마지막 (게노세크트)
+GEN_NO = {"generation-i": 1, "generation-ii": 2, "generation-iii": 3, "generation-iv": 4, "generation-v": 5}
 
 TYPE_KO = {
     "normal": "노말", "fire": "불꽃", "water": "물", "electric": "전기", "grass": "풀",
@@ -95,6 +98,7 @@ def load(pid):
         "happiness": spec["base_happiness"] or 0,
         "capture": spec["capture_rate"],
         "habitat": (spec["habitat"] or {}).get("name"),
+        "gen": GEN_NO[spec["generation"]["name"]],
         "legendary": spec["is_legendary"] or spec["is_mythical"],
         "flavor": flavors[-1] if flavors else "",
         "eggGroups": [EGG_KO.get(g["name"], g["name"]) for g in spec["egg_groups"]],
@@ -124,7 +128,7 @@ def type_chart():
 def main():
     CACHE.mkdir(parents=True, exist_ok=True)
     with ThreadPoolExecutor(8) as pool:
-        mons = list(pool.map(load, range(1, 152)))
+        mons = list(pool.map(load, range(1, LAST_ID + 1)))
 
     raw = {k: [] for k in "ESTBP"}
     for m in mons:
@@ -136,7 +140,7 @@ def main():
         type_play = sum(TYPE_PLAY.get(t, 0) for t in m["types"])
 
         m["basis"] = {
-            "habitat": HABITAT.get(m["habitat"], ("알 수 없음", 0))[0],
+            "habitat": HABITAT.get(m["habitat"], ("", 0))[0],
             "habitatBonus": habitat_bonus,
             "typePlay": type_play,
             "playTypes": [{"type": TYPE_KO[t], "bonus": TYPE_PLAY[t]} for t in m["types"] if t in TYPE_PLAY],
@@ -159,7 +163,9 @@ def main():
 
     OUT.write_text(
         "// 자동 생성 파일: scripts/build_data.py 로 다시 만들 수 있음 (직접 수정하지 마세요)\n"
-        f"const POKEMON = {json.dumps(mons, ensure_ascii=False, indent=1)};\n\n"
+        "const POKEMON = [\n"
+        + ",\n".join(json.dumps(m, ensure_ascii=False) for m in mons)
+        + "\n];\n\n"
         "// 타입 상성표: TYPE_CHART[공격 타입][방어 타입] = 배율 (없으면 1배)\n"
         f"const TYPE_CHART = {json.dumps(type_chart(), ensure_ascii=False)};\n"
     )
